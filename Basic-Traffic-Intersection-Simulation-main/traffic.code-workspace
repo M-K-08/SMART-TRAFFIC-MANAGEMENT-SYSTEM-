@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "../../CP"
+		},
+		{
+			"path": "../../CP/project"
+		},
+		{
+			"path": "../../CP/project/skin2"
+		},
+		{
+			"path": "../../CP/finalproject"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../Vehicle-tracking-and-intersection-performance-main"
+		},
+		{
+			"path": "../vechile tracking"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"iostream": "cpp"
+		}
+	}
+}
