@@ -7,15 +7,43 @@ from keras.models import load_model
 length=0
 
 
-def length_t(id):
-    global length
-    if id=='car':
-        length+=2
-    elif id=='truck':
-        length+=5
-    elif id=='bus':
-        length+=5
-    return length
+def predict_traffic(vehicles, lane_length=2, avg_speed={}):  # Replace with actual lane length
+
+  total_length = 0
+  green_light_time = 0
+
+  if not avg_speed:
+    avg_speed = {
+      "car": 2,  
+      "bus": 3,
+      "truck": 4,
+      "motorcycle": 1
+    }
+
+  # Calculate total vehicle length based on type and quantity
+  for vehicle_type, count in vehicles.items():
+    vehicle_length = get_vehicle_length(vehicle_type)  # Replace with function to get vehicle length
+    total_length += vehicle_length * count
+  total_length=total_length//2  
+  vec_list=[i for i in vehicles.keys()]
+  avg=0
+  for i in vec_list:
+     avg+=avg_speed[i]
+  
+  green_light_time = total_length / avg
+  green_light_time += 5
+  return total_length, green_light_time
+
+def get_vehicle_length(vehicle_type):
+  if vehicle_type == "car":
+    return 6  
+  elif vehicle_type == "bus":
+    return 10
+  elif vehicle_type == "motorcycle":
+    return 2
+  else:
+    return 12
+
 
 
 num_of_lanes=2
@@ -33,11 +61,12 @@ tlx1=200
 tly1=300
 brx2=950
 bry2=410
-target_classes = ["car", "truck", "motorcycle"]
+target_classes = ["car", "truck", "motorcycle","bus"]
 tracker=Tracker()
 area_c=set()
 eclass=["not emv","yes emv"]
 ans={}
+s=set()
 while True:
     ret,frame = cap.read()
     if not ret:
@@ -86,7 +115,7 @@ while True:
             cv2.putText(frame,str(c),(x3,y3),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,0,0),1)
             area_c.add(id)
             section_image = frame[y3:y4, x3:x4]
-            section_image = cv2.cvtColor(section_image, cv2.COLOR_BGR2RGB)
+            # section_image = cv2.cvtColor(section_image, cv2.COLOR_BGR2RGB)
             section_image=cv2.resize(section_image,(224,224))
             cv2.imshow('read window', section_image)
             # section_image = np.array(section_image)
@@ -95,11 +124,12 @@ while True:
             # ans=emergency.predict(section_image)
             # pred = np.argmax(ans)
             # print(eclass[pred])
-            if c not in ans:
-                ans[c]=1
-            else:
+            if c in ans and id not in s:
                 ans[c]+=1
-            
+                s.add(id)
+            elif c not in ans:
+                ans[c]=1
+                s.add(id)
     carcount=len(area_c)
     # total=length_t(c)
     cv2.putText(frame,str(carcount),(50,50),cv2.FONT_HERSHEY_PLAIN,5,(255,0,0),2)
@@ -108,7 +138,11 @@ while True:
     cv2.imshow("RGB", frame)
     if cv2.waitKey(1)&0xFF==27:
         break
+
+total_length, green_light_time = predict_traffic(ans)
 print(ans)
+print("Predicted total traffic length :", total_length, "meters")
+print("Recommended green light time:", green_light_time, "seconds")
 cap.release()
 cv2.destroyAllWindows()
 
